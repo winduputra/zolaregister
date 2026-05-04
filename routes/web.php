@@ -3,6 +3,7 @@
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\RegisterController;
+use App\Http\Controllers\TutorController;
 use Illuminate\Support\Facades\Route;
 
 // Redirect root to login
@@ -26,4 +27,9 @@ Route::middleware(['auth'])->group(function () {
     Route::put('/register/{register}', [RegisterController::class, 'update'])->name('register.update');
     Route::delete('/register/{register}', [RegisterController::class, 'destroy'])->name('register.destroy');
     Route::get('/register/export-pdf', [RegisterController::class, 'exportPdf'])->name('register.export-pdf');
+
+    // Admin & Owner only routes
+    Route::middleware(['role:admin,owner'])->group(function () {
+        Route::resource('tutors', TutorController::class);
+    });
 });
