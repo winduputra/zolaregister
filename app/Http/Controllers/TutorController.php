@@ -47,13 +47,8 @@ class TutorController extends Controller
 
     public function destroy(Tutor $tutor)
     {
-        // Check if tutor has registers
-        if ($tutor->registers()->count() > 0) {
-            return redirect()->route('tutors.index')->with('error', 'Tutor tidak dapat dihapus karena memiliki data register.');
-        }
-
         $tutor->delete();
 
-        return redirect()->route('tutors.index')->with('success', 'Tutor berhasil dihapus.');
+        return redirect()->route('tutors.index')->with('success', 'Tutor dan data register terkait berhasil dihapus.');
     }
 }

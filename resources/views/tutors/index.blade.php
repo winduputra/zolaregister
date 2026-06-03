@@ -42,18 +42,20 @@
                             <td class="px-6 py-4 text-right">
                                 <div class="flex items-center justify-end gap-2">
                                     <a href="{{ route('tutors.edit', $tutor) }}" 
-                                       class="p-2 rounded-lg text-primary-600 hover:bg-primary-50 transition-colors" title="Edit">
+                                       class="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-primary-50 text-primary-600 text-sm font-bold hover:bg-primary-100 transition-colors" title="Edit">
                                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-5M16.5 3.5a2.121 2.121 0 113 3L11.707 15.207a1 1 0 01-.44.253l-3 .75a1 1 0 01-1.147-1.147l.75-3a1 1 0 01.253-.44L16.5 3.5z"/>
                                         </svg>
+                                        Edit
                                     </a>
-                                    <form action="{{ route('tutors.destroy', $tutor) }}" method="POST" class="inline-block" onsubmit="return confirm('Apakah Anda yakin ingin menghapus tutor ini?')">
+                                    <form action="{{ route('tutors.destroy', $tutor) }}" method="POST" class="inline-block" onsubmit="return confirm('Apakah Anda yakin ingin menghapus tutor ini? Data register milik tutor ini juga akan terhapus.')">
                                         @csrf
                                         @method('DELETE')
-                                        <button type="submit" class="p-2 rounded-lg text-danger-600 hover:bg-danger-50 transition-colors" title="Hapus">
+                                        <button type="submit" class="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-danger-50 text-danger-600 text-sm font-bold hover:bg-danger-100 transition-colors" title="Hapus">
                                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
                                             </svg>
+                                            Hapus
                                         </button>
                                     </form>
                                 </div>

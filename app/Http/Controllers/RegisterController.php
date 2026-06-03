@@ -139,15 +139,23 @@ class RegisterController extends Controller
 
     public function exportPdf(Request $request)
     {
+        $validated = $request->validate([
+            'month' => 'nullable|date_format:Y-m',
+            'program' => 'nullable|string',
+        ]);
+
+        $period = Carbon::createFromFormat('Y-m', $validated['month'] ?? now()->format('Y-m'))->startOfMonth();
+        $periodLabel = $period->translatedFormat('F Y');
         $tutors = Tutor::all();
         $tutorData = [];
 
         foreach ($tutors as $tutor) {
-            $query = Register::where('tutor_id', $tutor->id)->with(['classCode', 'user']);
-
-            if ($request->filled('date')) {
-                $query->whereDate('register_date', $request->date);
-            }
+            $query = Register::where('tutor_id', $tutor->id)
+                ->with(['classCode', 'user'])
+                ->whereBetween('register_date', [
+                    $period->copy()->startOfMonth()->toDateString(),
+                    $period->copy()->endOfMonth()->toDateString(),
+                ]);
 
             if ($request->filled('program')) {
                 $query->whereHas('classCode', function ($q) use ($request) {
@@ -176,17 +184,15 @@ class RegisterController extends Controller
         }
 
         $filterInfo = [];
-        if ($request->filled('date')) {
-            $filterInfo[] = 'Tanggal: ' . Carbon::parse($request->date)->format('d/m/Y');
-        }
+        $filterInfo[] = 'Bulan: ' . $periodLabel;
         if ($request->filled('program')) {
             $filterInfo[] = 'Program: ' . $request->program;
         }
 
-        $pdf = Pdf::loadView('register.pdf', compact('tutorData', 'filterInfo'));
+        $pdf = Pdf::loadView('register.pdf', compact('tutorData', 'filterInfo', 'periodLabel'));
         $pdf->setPaper('A4', 'portrait'); // Change to portrait for better readability per tutor
 
-        $filename = 'laporan-register-' . now()->format('Y-m-d-His') . '.pdf';
+        $filename = 'laporan-register-' . $period->format('Y-m') . '.pdf';
 
         return $pdf->download($filename);
     }

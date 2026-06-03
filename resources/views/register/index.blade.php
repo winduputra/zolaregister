@@ -10,14 +10,14 @@
             <p class="text-gray-500 mt-1 text-[15px]">Semua data register tutor</p>
         </div>
         <div class="flex items-center gap-3">
-            <a href="{{ route('register.export-pdf', request()->query()) }}" id="btn-export-pdf"
-               class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white border border-gray-200 text-gray-700 text-sm font-semibold
-                       hover:bg-gray-50 hover:border-gray-300 active:scale-[0.98] transition-all duration-200">
+            <button type="button" onclick="openExportModal()" id="btn-export-pdf"
+                    class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white border border-gray-200 text-gray-700 text-sm font-semibold
+                            hover:bg-gray-50 hover:border-gray-300 active:scale-[0.98] transition-all duration-200">
                 <svg class="w-4 h-4 text-danger-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                 </svg>
                 Export PDF
-            </a>
+            </button>
             <a href="{{ route('register.create') }}" id="btn-add-register"
                class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-primary-600 text-white text-sm font-semibold
                        shadow-md shadow-primary-500/20 hover:bg-primary-700 active:scale-[0.98] transition-all duration-200">
@@ -213,6 +213,65 @@
         @endif
     </div>
 
+    @php
+        $selectedExportMonth = request('date') ? \Carbon\Carbon::parse(request('date'))->format('Y-m') : now()->format('Y-m');
+        $exportYear = \Carbon\Carbon::createFromFormat('Y-m', $selectedExportMonth)->year;
+    @endphp
+
+    {{-- Export PDF Month Modal --}}
+    <div id="export-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4">
+        {{-- Backdrop --}}
+        <div id="export-modal-backdrop" class="absolute inset-0 bg-black/40 backdrop-blur-sm" onclick="closeExportModal()"></div>
+        {{-- Modal Content --}}
+        <div id="export-modal-content" class="relative bg-white rounded-2xl shadow-2xl w-full max-w-lg p-6 transform scale-95 opacity-0 transition-all duration-200">
+            <div class="flex flex-col items-center text-center">
+                <div class="w-14 h-14 rounded-2xl bg-danger-50 flex items-center justify-center mb-4">
+                    <svg class="w-7 h-7 text-danger-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                    </svg>
+                </div>
+                <h3 class="text-lg font-bold text-gray-900 mb-1">Export PDF Bulanan</h3>
+                <p class="text-sm text-gray-500 mb-5">Pilih salah satu bulan {{ $exportYear }}, lalu klik Download PDF.</p>
+
+                <form id="export-form" method="GET" action="{{ route('register.export-pdf') }}" class="w-full text-left">
+                    @if(request('program'))
+                        <input type="hidden" name="program" value="{{ request('program') }}">
+                    @endif
+
+                    <p class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 ml-1">Bulan</p>
+                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                        @foreach(range(1, 12) as $monthNumber)
+                            @php
+                                $monthDate = \Carbon\Carbon::create($exportYear, $monthNumber, 1);
+                                $monthValue = $monthDate->format('Y-m');
+                            @endphp
+                            <label class="cursor-pointer">
+                                <input type="radio" name="month" value="{{ $monthValue }}" class="sr-only peer"
+                                       {{ $selectedExportMonth === $monthValue ? 'checked' : '' }} required>
+                                <span class="block rounded-xl border border-gray-100 bg-gray-50/50 px-3 py-3 text-center text-sm font-bold text-gray-700
+                                             transition-all duration-200 peer-checked:border-danger-500 peer-checked:bg-danger-50 peer-checked:text-danger-600
+                                             hover:border-danger-200 hover:bg-danger-50/60">
+                                    {{ $monthDate->translatedFormat('F') }}
+                                </span>
+                            </label>
+                        @endforeach
+                    </div>
+
+                    <div class="flex items-center gap-3 w-full mt-5">
+                        <button type="button" onclick="closeExportModal()"
+                                class="flex-1 py-3 px-4 rounded-xl bg-gray-100 text-gray-700 font-bold text-sm hover:bg-gray-200 active:scale-[0.98] transition-all">
+                            Batal
+                        </button>
+                        <button type="submit"
+                                class="flex-1 py-3 px-4 rounded-xl bg-danger-500 text-white font-bold text-sm hover:bg-danger-600 shadow-lg shadow-danger-500/25 active:scale-[0.98] transition-all">
+                            Download PDF
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
     {{-- Delete Confirmation Modal --}}
     <div id="delete-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4">
         {{-- Backdrop --}}
@@ -250,6 +309,34 @@
 
 @push('scripts')
 <script>
+    function openExportModal() {
+        const modal = document.getElementById('export-modal');
+        const content = document.getElementById('export-modal-content');
+        const selectedMonth = document.querySelector('input[name="month"]:checked');
+
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+
+        requestAnimationFrame(() => {
+            content.classList.remove('scale-95', 'opacity-0');
+            content.classList.add('scale-100', 'opacity-100');
+            selectedMonth?.focus();
+        });
+    }
+
+    function closeExportModal() {
+        const modal = document.getElementById('export-modal');
+        const content = document.getElementById('export-modal-content');
+
+        content.classList.remove('scale-100', 'opacity-100');
+        content.classList.add('scale-95', 'opacity-0');
+
+        setTimeout(() => {
+            modal.classList.remove('flex');
+            modal.classList.add('hidden');
+        }, 200);
+    }
+
     function openDeleteModal(id, tutorName, date) {
         const modal = document.getElementById('delete-modal');
         const content = document.getElementById('delete-modal-content');
@@ -283,7 +370,10 @@
 
     // Close modal on Escape key
     document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape') closeDeleteModal();
+        if (e.key === 'Escape') {
+            closeExportModal();
+            closeDeleteModal();
+        }
     });
 </script>
 @endpush

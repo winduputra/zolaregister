@@ -114,7 +114,7 @@
         <div class="page">
             <div class="header">
                 <h1>ZOLA REGISTER</h1>
-                <p>Laporan Register Bulanan — {{ now()->format('F Y') }}</p>
+                <p>Laporan Register Bulanan — {{ $periodLabel }}</p>
                 <p style="font-size: 8px; margin-top: 5px;">Filter: {{ implode(' | ', $filterInfo) ?: 'Semua Data' }}</p>
             </div>
 
