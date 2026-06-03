@@ -246,11 +246,12 @@
                                 $monthValue = $monthDate->format('Y-m');
                             @endphp
                             <label class="cursor-pointer">
-                                <input type="radio" name="month" value="{{ $monthValue }}" class="sr-only peer"
+                                <input type="radio" name="month" value="{{ $monthValue }}" class="sr-only"
                                        {{ $selectedExportMonth === $monthValue ? 'checked' : '' }} required>
-                                <span class="block rounded-xl border border-gray-100 bg-gray-50/50 px-3 py-3 text-center text-sm font-bold text-gray-700
-                                             transition-all duration-200 peer-checked:border-danger-500 peer-checked:bg-danger-50 peer-checked:text-danger-600
-                                             hover:border-danger-200 hover:bg-danger-50/60">
+                                <span data-export-month-option
+                                      class="block rounded-xl border border-gray-100 bg-gray-50/50 px-3 py-3 text-center text-sm font-bold text-gray-700
+                                             transition-all duration-200 hover:border-danger-200 hover:bg-danger-50/60"
+                                      style="{{ $selectedExportMonth === $monthValue ? 'border-color: #fa5252; background-color: #fff5f5; color: #f03e3e; box-shadow: 0 0 0 2px rgba(250, 82, 82, 0.12);' : '' }}">
                                     {{ $monthDate->translatedFormat('F') }}
                                 </span>
                             </label>
@@ -309,10 +310,35 @@
 
 @push('scripts')
 <script>
+    function updateExportMonthSelection() {
+        document.querySelectorAll('input[name="month"]').forEach((input) => {
+            const option = input.closest('label')?.querySelector('[data-export-month-option]');
+
+            if (!option) {
+                return;
+            }
+
+            if (input.checked) {
+                option.style.borderColor = '#fa5252';
+                option.style.backgroundColor = '#fff5f5';
+                option.style.color = '#f03e3e';
+                option.style.boxShadow = '0 0 0 2px rgba(250, 82, 82, 0.12)';
+                return;
+            }
+
+            option.style.borderColor = '';
+            option.style.backgroundColor = '';
+            option.style.color = '';
+            option.style.boxShadow = '';
+        });
+    }
+
     function openExportModal() {
         const modal = document.getElementById('export-modal');
         const content = document.getElementById('export-modal-content');
         const selectedMonth = document.querySelector('input[name="month"]:checked');
+
+        updateExportMonthSelection();
 
         modal.classList.remove('hidden');
         modal.classList.add('flex');
@@ -375,5 +401,11 @@
             closeDeleteModal();
         }
     });
+
+    document.querySelectorAll('input[name="month"]').forEach((input) => {
+        input.addEventListener('change', updateExportMonthSelection);
+    });
+
+    updateExportMonthSelection();
 </script>
 @endpush
